@@ -1,0 +1,5 @@
+1. We spent around 8 hours on this assignment.
+
+2. Our main takeaway from this assignment was understanding how shells create and pass arguments to processes using fucntions like fork and execve and learning what the terminal does to parse them.
+
+3. We have questions about how more complex shell arguments like opening applications, adding arguments, and passing complex data work.

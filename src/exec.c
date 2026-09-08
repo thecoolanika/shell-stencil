@@ -3,24 +3,28 @@
 #include <stdlib.h> // for malloc, realloc, and free
 #include <unistd.h> // for fork
 
-/*
- * TODO: implement me!
- */
 void exec_init(char *environment) {
-
+    env = environment;
 }
 
-/*
- * TODO: implement me!
- */
 void exec_cleanup() {
-
+    env = NULL;
 }
 
-/*
- * TODO: implement me!
- */
 pid_t execute_process(const char *command, char **argv) {
-    return (pid_t) -1;
+    pid_t proc = fork();
+
+    if (proc == -1) {
+        return -1;
+    }
+
+    if (proc == 0) {
+        char *envp[] = { env, NULL };
+
+        execve(argv[0], argv, envp);
+        exit(EXIT_FAILURE);
+    }
+
+    return proc;
 }
 

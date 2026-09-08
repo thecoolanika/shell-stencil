@@ -13,5 +13,8 @@ shell: exec input
 readfile: exec input
 	gcc -Wno-builtin-declaration-mismatch -g -O0 -Iinclude -I. bin/string.o bin/exec.o bin/input.o test/readfile.c -o bin/readfile
 
+string_test: string
+	gcc -Wno-builtin-declaration-mismatch -g -O0 -Iinclude -I. bin/input.o bin/string.o test/test.c -o bin/string_test
+
 clean:
 	rm -rf bin/*
