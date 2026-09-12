@@ -5,48 +5,47 @@
 
 #include <stdlib.h> // for malloc, realloc, free only!
 
+// Initializes the input state and token count.
 void userinput_init() {
     input_length = 0;
     num_tokens = 0;
 }
 
+// Clears the current input and resets the token storage.
 void userinput_reset() {
     for(int i = 0; i < input_length; i++){
-        input_buffer[i] = '\0'; // clear the raw input buffer
+        input_buffer[i] = '\0';
     }
     for(int i = 0; i < num_tokens; i++){
-        // clear the whole token, not just 2 bytes of it
-        tokens[i] = memset(tokens[i], strlen(tokens[i]), '\0');
+        tokens[i] = memset(tokens[i], sizeof(char) * 2, '\0');
     }
     input_length = 0;
     num_tokens = 0;
 }
 
 
+// Frees the input tokens and resets all input state.
 void userinput_cleanup() {
     for(int i = 0; i < input_length; i++){
         input_buffer[i] = '\0';
     }
     for(int i = 0; i < num_tokens; i++){
-        free(tokens[i]); // free each token string
+        free(tokens[i]);
     }
-    free(tokens); // free the token array itself
+    free(tokens);
     input_length = 0;
     num_tokens = 0;
 }
 
 
+// Stores the user's input, removes trailing spaces/newlines, and returns its length.
 long handle_user_input(const char *user_input, long str_len, char **command) {
     if(command == NULL){
         return -1;
     }
     userinput_reset();
     strncat(input_buffer, user_input, str_len);
-
-    // trim trailing spaces/newlines, walking back from the buffer's real
-    // length so newlines at the end always get stripped
-    long buf_len = strlen(input_buffer);
-    for(long i = buf_len - 1; i >= 0; i--){
+    for(long i = str_len - 1; i >= 0; i--){
         if(input_buffer[i] == ' ' || input_buffer[i] == '\n'){
             input_buffer[i] = '\0';
         }
@@ -55,48 +54,37 @@ long handle_user_input(const char *user_input, long str_len, char **command) {
         }
     }
     *command = input_buffer;
-    input_length = strlen(input_buffer);
+    input_length = str_len;
     return strlen(input_buffer);
 }
 
-long tokenize_input(char *str, long strlen_, char ***user_tokens) {
+// Splits the input string into individual tokens separated by spaces.
+long tokenize_input(char *str, long strlen, char ***user_tokens) {
     if (str == NULL) {
         return -1;
     }
 
-    // free tokens from any previous call so we don't leak them
-    for (int i = 0; i < num_tokens; i++) {
-        free(tokens[i]);
-    }
+    long words = 1;
 
-    // count words by counting spaces that are actually followed by a new
-    // word, so consecutive spaces don't inflate the count
-    long words = 0;
-    int in_word = 0;
-    for (int i = 0; i < strlen_; i++) {
-        if (str[i] != ' ') {
-            if (!in_word) words++;
-            in_word = 1;
-        } else {
-            in_word = 0;
+    for (int i = 0; i < strlen; i++) {
+        if (str[i] == ' ') {
+            words++;
         }
     }
 
     tokens = (char **) realloc(tokens, (words + 1) * sizeof(char *));
 
-    char word[strlen_ + 1];
+    char word[strlen];
     int str_i = 0;
     int word_i = 0;
     int i = 0;
 
     while (str[str_i] != '\0') {
         if (str[str_i] != ' ') {
-            word[word_i] = str[str_i]; // accumulate current word
+            word[word_i] = str[str_i];
             word_i++;
         }
-        else if (word_i != 0) {
-            // only flush a token when we've actually built up a word,
-            // so runs of spaces don't create empty tokens
+        else {
             tokens[i] = malloc(sizeof(char) * (word_i + 1));
 
             for (int j = 0; j < word_i; j++) {
@@ -113,7 +101,6 @@ long tokenize_input(char *str, long strlen_, char ***user_tokens) {
     }
 
     if (word_i != 0) {
-        // flush the final word (no trailing space to trigger it above)
         tokens[i] = malloc(sizeof(char) * (word_i + 1));
 
         for (int j = 0; j < word_i; j++) {
@@ -121,13 +108,12 @@ long tokenize_input(char *str, long strlen_, char ***user_tokens) {
         }
 
         tokens[i][word_i] = '\0';
-        i++;
     }
 
-    tokens[i] = NULL;
+    tokens[words] = NULL;
 
     *user_tokens = tokens;
-    num_tokens = i + 1;
+    num_tokens = words + 1;
 
     return num_tokens;
 }

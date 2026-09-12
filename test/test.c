@@ -97,5 +97,9 @@ int main() {
         printf("%s\n", inptokens[i]);
     }
 
+    char *long1 = "\xFF";
+    char *long2 = "a";
+    assert(strncmp(long1, long2, 2) == 1);
+
     return 0;
 }
